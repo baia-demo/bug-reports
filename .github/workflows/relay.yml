@@ -1,0 +1,24 @@
+name: Relay Bug Reports
+
+# Roda no próprio repo bug-reports — quando uma issue ganha label needs-triage,
+# dispara o workflow de triagem aqui no apresentacao-baia via repository_dispatch.
+# Este arquivo é uma referência: copie pra `baia-demo/bug-reports/.github/workflows/`.
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  relay:
+    if: github.event.label.name == 'needs-triage'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disparar triagem no apresentacao-baia
+        env:
+          GH_TOKEN: ${{ secrets.RELAY_TOKEN }}
+        run: |
+          gh api -X POST \
+            /repos/${{ vars.TRIAGE_REPO }}/dispatches \
+            -f event_type=bug-report-labeled \
+            -f "client_payload[issue_number]=${{ github.event.issue.number }}" \
+            -f "client_payload[issue_url]=${{ github.event.issue.html_url }}"
